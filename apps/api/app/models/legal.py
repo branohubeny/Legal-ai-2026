@@ -3,6 +3,7 @@ from datetime import date, datetime
 
 from sqlalchemy import Date, DateTime, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from pgvector.sqlalchemy import Vector
 
 
 class Base(DeclarativeBase):
@@ -70,6 +71,7 @@ class LegalSection(Base):
     letter: Mapped[str | None] = mapped_column(String(20))
     title: Mapped[str | None] = mapped_column(Text)
     text: Mapped[str] = mapped_column(Text)
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(1536))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow
     )

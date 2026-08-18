@@ -1,8 +1,8 @@
+vector = getattr(document, "embedding", None)
+LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)LegalSection.embedding.cosine_distance(query_vector)
+ORDER BY embedding <=> :query_vector
+
 from typing import Iterable
-
-from sqlalchemy import select
-
-from app.models.legal import LegalSection
 
 
 def keyword_search(
@@ -17,9 +17,7 @@ def keyword_search(
     return [
         document
         for document in documents
-        if query in str(
-            getattr(document, "text", getattr(document, "content", ""))
-        ).lower()
+        if query in str(getattr(document, "content", "")).lower()
     ]
 
 
@@ -58,51 +56,6 @@ def vector_search(
     return [document for _, document in scored[:limit]]
 
 
-async def vector_search_db(
-    session,
-    query_vector: list[float],
-    limit: int = 10,
-    jurisdiction: str | None = None,
-    on_date=None,
-) -> list[tuple[LegalSection, float]]:
-    distance = LegalSection.embedding.cosine_distance(query_vector)
-
-    stmt = (
-        select(
-            LegalSection,
-            distance.label("distance"),
-        )
-        .join(LegalSection.version)
-        .join(LegalSection.version.property.mapper.class_.document)
-        .where(LegalSection.embedding.is_not(None))
-    )
-
-    if jurisdiction:
-        stmt = stmt.where(
-            LegalSection.version.property.mapper.class_.document.property.mapper.class_.jurisdiction
-            == jurisdiction
-        )
-
-    if on_date is not None:
-        stmt = stmt.where(
-            LegalSection.version.property.mapper.class_.valid_from <= on_date,
-            (
-                LegalSection.version.property.mapper.class_.valid_to.is_(None)
-                | (LegalSection.version.property.mapper.class_.valid_to >= on_date)
-            ),
-        )
-
-    stmt = (
-        stmt
-        .order_by(distance)
-        .limit(limit)
-    )
-
-    result = await session.execute(stmt)
-
-    return result.all()
-
-
 def metadata_filter(
     documents: Iterable[object],
     filters: dict[str, object],
@@ -110,14 +63,18 @@ def metadata_filter(
     if not filters:
         return list(documents)
 
-    return [
-        document
-        for document in documents
-        if all(
+    result = []
+
+    for document in documents:
+        matches = all(
             getattr(document, key, None) == value
             for key, value in filters.items()
         )
-    ]
+
+        if matches:
+            result.append(document)
+
+    return result
 
 
 def temporal_keyword_search(
@@ -141,13 +98,10 @@ def rerank(
     scored = []
 
     for document in documents:
-        content = str(
-            getattr(document, "text", getattr(document, "content", ""))
-        ).lower()
-
+        content = str(getattr(document, "content", "")).lower()
         terms = set(content.split())
-        score = len(query_terms & terms)
 
+        score = len(query_terms & terms)
         scored.append((score, document))
 
     scored.sort(key=lambda item: item[0], reverse=True)
@@ -175,3 +129,4 @@ def hybrid_search(
             combined.append(document)
 
     return rerank(combined, query, limit)
+
