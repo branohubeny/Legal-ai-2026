@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from app.db import AsyncSessionLocal
+from app.fallback_data import fallback_search
 from app.models.legal import LegalSection
 from app.services.embeddings import EmbeddingQuotaError, create_embedding
 from app.services.embeddings import EmbeddingQuotaError, create_embedding
@@ -29,41 +30,56 @@ async def search(request: SearchRequest):
 
     try:
         query_vector = create_embedding(request.query)
+        async with AsyncSessionLocal() as session:
+            vector_results = await vector_search_db(
+                session,
+                query_vector,
+                limit=request.limit,
+                jurisdiction=request.jurisdiction,
+                on_date=on_date,
+            )
+
+            results = []
+
+            for section, distance in vector_results:
+                results.append(
+                    {
+                        "id": str(section.id),
+                        "version_id": str(section.version_id),
+                        "section_number": section.section_number,
+                        "subsection": section.subsection,
+                        "letter": section.letter,
+                        "title": section.title,
+                        "text": section.text,
+                        "vector_distance": float(distance),
+                    }
+                )
+
+        return {
+            "query": request.query,
+            "on_date": on_date,
+            "jurisdiction": request.jurisdiction,
+            "limit": request.limit,
+            "source": "semantic",
+            "results": results,
+        }
     except EmbeddingQuotaError as exc:
         raise HTTPException(
             status_code=503,
             detail="Semantic search is temporarily unavailable because the embedding service quota is unavailable.",
         ) from exc
-
-    async with AsyncSessionLocal() as session:
-        vector_results = await vector_search_db(
-            session,
-            query_vector,
+    except Exception:
+        fallback_results = fallback_search(
+            request.query,
             limit=request.limit,
             jurisdiction=request.jurisdiction,
             on_date=on_date,
         )
-
-        results = []
-
-        for section, distance in vector_results:
-            results.append(
-                {
-                    "id": str(section.id),
-                    "version_id": str(section.version_id),
-                    "section_number": section.section_number,
-                    "subsection": section.subsection,
-                    "letter": section.letter,
-                    "title": section.title,
-                    "text": section.text,
-                    "vector_distance": float(distance),
-                }
-            )
-
-    return {
-        "query": request.query,
-        "on_date": on_date,
-        "jurisdiction": request.jurisdiction,
-        "limit": request.limit,
-        "results": results,
-    }
+        return {
+            "query": request.query,
+            "on_date": on_date,
+            "jurisdiction": request.jurisdiction,
+            "limit": request.limit,
+            "source": "fallback",
+            "results": fallback_results,
+        }
