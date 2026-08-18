@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LEGAL AI 2026</title>
+    <!-- Materialize CSS for Android/Material look -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <link href="/main.css" rel="stylesheet">
+  </head>
+  <body>
+    <header>
+      <nav class="blue darken-2">
+        <div class="nav-wrapper container">
+          <a href="#" class="brand-logo">LEGAL AI 2026</a>
+          <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+          <ul class="right hide-on-med-and-down">
+            <li><a href="#search">Search</a></li>
+            <li><a href="#docs">Documents</a></li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container content" role="main">
+      <section id="hero" class="section">
+        <h5>Ask legal questions — Slovak law supported</h5>
+        <div class="row">
+          <div class="input-field col s12">
+            <input id="query" type="text" placeholder="Zadajte vyhľadávací dopyt..." />
+            <label for="query">Search legal text</label>
+          </div>
+          <div class="col s12">
+            <a id="searchBtn" class="btn waves-effect waves-light blue darken-1">Search</a>
+            <a id="clearBtn" class="btn-flat grey-text">Clear</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="results" class="section">
+        <h6>Results</h6>
+        <div id="resultsList" class="row"></div>
+      </section>
+
+      <section id="docs" class="section">
+        <h6>Legal documents</h6>
+        <div id="docsList" class="collection"></div>
+      </section>
+    </main>
+
+    <footer class="page-footer blue darken-3">
+      <div class="container">
+        <div class="row">
+          <div class="col s12">
+            <div class="center">
+              <a class="btn-floating btn-large white"><i class="material-icons black-text">gavel</i></a>
+            </div>
+            <p class="white-text center">LEGAL AI 2026 — Android-styled web UI</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Materialize JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

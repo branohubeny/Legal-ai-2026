@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="sk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Legal AI 2026</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-wrap">
+          <div class="brand-badge">AI</div>
+          <div>
+            <p class="eyebrow">Právny asistent</p>
+            <h1>Legal AI 2026</h1>
+          </div>
+        </div>
+        <button class="icon-btn" aria-label="Notifikácie">🔔</button>
+      </header>
+
+      <nav class="tab-nav" aria-label="Navigácia aplikácie">
+        <button class="tab-button active" data-tab="home">Domov</button>
+        <button class="tab-button" data-tab="documents">Dokumenty</button>
+        <button class="tab-button" data-tab="chat">AI chat</button>
+        <button class="tab-button" data-tab="profile">Profil</button>
+      </nav>
+
+      <main class="content">
+        <section class="tab-panel active" data-panel="home">
+          <section class="hero card">
+            <div class="status-row">
+              <span class="status-pill online">Online</span>
+              <span class="status-text">Aktualizované dnes</span>
+            </div>
+            <h2>Vyhľadávať právne predpisy</h2>
+            <div class="search-box">
+              <input
+                id="queryInput"
+                type="text"
+                aria-label="Hľadať právny problém"
+                placeholder="Zadajte otázku, napr. zmluva, náhrada škody..."
+                value="zmluva"
+              />
+              <button id="searchBtn">Hľadať</button>
+            </div>
+            <div class="quick-filters">
+              <button class="chip active" data-query="zmluva">Zmluva</button>
+              <button class="chip" data-query="náhrada škody">Náhrada škody</button>
+              <button class="chip" data-query="podnikanie">Podnikanie</button>
+              <button class="chip" data-query="právne poradenstvo">Právne poradenstvo</button>
+            </div>
+          </section>
+
+          <section class="stats-grid">
+            <article class="stat-card card">
+              <p>Dokumenty</p>
+              <strong id="documentCount">0</strong>
+            </article>
+            <article class="stat-card card">
+              <p>Výsledkov</p>
+              <strong id="resultCount">0</strong>
+            </article>
+            <article class="stat-card card success-card">
+              <p>Aktuálne</p>
+              <strong>SK</strong>
+            </article>
+          </section>
+
+          <section class="section-header">
+            <h3>Rýchle scenáre</h3>
+          </section>
+          <section class="scenario-grid">
+            <article class="scenario-card card">
+              <span class="scenario-icon">⚖️</span>
+              <h4>Kontrola zmluvy</h4>
+              <p>Analýza podmienok, nejasností a rizík.</p>
+            </article>
+            <article class="scenario-card card">
+              <span class="scenario-icon">🛡️</span>
+              <h4>Ochrana práv</h4>
+              <p>Vyhľadanie relevantných paragrafov a odporúčaní.</p>
+            </article>
+          </section>
+
+          <section class="section-header">
+            <h3>Relevantné pasáže</h3>
+            <span id="sourceBadge" class="source-badge">Načítavam…</span>
+          </section>
+          <section id="resultList" class="results-list" aria-live="polite"></section>
+        </section>
+
+        <section class="tab-panel" data-panel="documents">
+          <section class="section-header">
+            <h3>Najnovšie dokumenty</h3>
+            <a href="#">Zobraziť všetko</a>
+          </section>
+          <section id="documentList" class="documents-list" aria-live="polite"></section>
+        </section>
+
+        <section class="tab-panel" data-panel="chat">
+          <section class="card chat-card">
+            <div class="chat-header">
+              <div>
+                <p class="eyebrow">AI právny poradca</p>
+                <h3>Legal assistant</h3>
+              </div>
+              <span class="chat-status">online</span>
+            </div>
+            <div id="chatMessages" class="chat-messages" aria-live="polite">
+              <div class="message assistant">
+                <p>Ahoj! Môžem ti pomôcť s právnou analýzou zmlúv, škôd alebo podnikania. Zvoľ otázku alebo hľadaj zmysluplný právny predmet.</p>
+              </div>
+            </div>
+            <form id="chatForm" class="chat-form">
+              <input id="chatInput" type="text" placeholder="Napíš otázku..." aria-label="Otázka pre AI poradcu" />
+              <button type="submit">Odoslať</button>
+            </form>
+          </section>
+        </section>
+
+        <section class="tab-panel" data-panel="profile">
+          <section class="card profile-card">
+            <div class="profile-header">
+              <div class="avatar">JD</div>
+              <div>
+                <h3>Ján Dvořák</h3>
+                <p>Právny klient / podnikateľ</p>
+              </div>
+            </div>
+            <ul class="profile-list">
+              <li><span>Plán</span><strong>Business</strong></li>
+              <li><span>Jazyk</span><strong>Slovenčina</strong></li>
+              <li><span>Jurisdikcia</span><strong>SK</strong></li>
+              <li><span>Posledný dotaz</span><strong>Zmluva</strong></li>
+            </ul>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
