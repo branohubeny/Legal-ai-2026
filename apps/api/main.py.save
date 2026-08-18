@@ -1,0 +1,538 @@
+from fastapi import FastAPI
+
+app = FastAPI(
+    title="LEGAL AI 2026",
+    description="AI právny výskumný a asistenčný systém",
+    version="0.1.0",
+)
+
+
+@app.get("/health")
+async def health():
+    return {
+        "status": "ok",
+        "service": "LEGAL AI 2026",
+        "version": "0.1.0",
+    }
+
+
+@app.get("/")
+async def root():
+    return {
+        "message": "LEGAL AI 2026 API",
+        "status": "running",
+    }
+from 
+app.routers.legal_documents 
+import 
+router as 
+legal_documents_router 
+app.include_router(legal_documents_router) 
+uvicorn 
+main:app 
+--host 
+0.0.0.0 
+--port 
+8000 
+--reload 
+/docs GET 
+/api/legal-documents 
+cd 
+/workspaces/Legal-ai-2026/apps/api 
+source 
+.venv/bin/activate 
+cd 
+/workspaces/Legal-ai-2026/apps/api 
+source 
+.venv/bin/activate 
+cat > 
+app/services/temporal.py 
+<<'EOF' 
+from 
+datetime 
+import 
+date from 
+app.models.legal 
+import 
+LegalVersion 
+def 
+is_effective_on(version: 
+LegalVersion, 
+target_date: 
+date) -> 
+bool:
+    """ 
+    Určuje, 
+    či je 
+    právna 
+    verzia 
+    účinná 
+    v 
+    daný 
+    dátum. 
+    valid_from 
+    je 
+    vrátane. 
+    valid_to 
+    je 
+    vrátane, 
+    ak je 
+    nastavené. 
+    """ 
+    if 
+    target_date 
+    < 
+    version.valid_from:
+        return 
+        False
+    if 
+    version.valid_to 
+    is 
+    not 
+    None 
+    and 
+    target_date 
+    > 
+    version.valid_to: 
+        return 
+        False
+    return 
+    True
+def 
+classify_version(version: 
+LegalVersion, 
+target_date: 
+date) -> 
+str:
+    if 
+    target_date 
+    < 
+    version.valid_from:
+        return 
+        "future"
+    if 
+    version.valid_to 
+    is 
+    not 
+    None 
+    and 
+    target_date 
+    > 
+    version.valid_to: 
+        return 
+        "historical"
+    return 
+    "effective"
+EOF mkdir 
+-p tests 
+cat > 
+tests/test_temporal.py 
+<<'EOF' 
+from 
+datetime 
+import 
+date from 
+types 
+import 
+SimpleNamespace 
+from 
+app.services.temporal 
+import 
+classify_version, 
+is_effective_on 
+def 
+version(valid_from, 
+valid_to=None):
+    return 
+    SimpleNamespace(
+        valid_from=valid_from, 
+        valid_to=valid_to,
+    ) def 
+test_effective_version():
+    v = 
+    version(date(2026, 
+    1, 
+    1), 
+    date(2026, 
+    12, 
+    31)) 
+    assert 
+    is_effective_on(v, 
+    date(2026, 
+    6, 
+    1)) 
+    assert 
+    classify_version(v, 
+    date(2026, 
+    6, 
+    1)) 
+    == 
+    "effective"
+def 
+test_historical_version():
+    v = 
+    version(date(2025, 
+    1, 
+    1), 
+    date(2025, 
+    12, 
+    31)) 
+    assert 
+    not 
+    is_effective_on(v, 
+    date(2026, 
+    1, 
+    1)) 
+    assert 
+    classify_version(v, 
+    date(2026, 
+    1, 
+    1)) 
+    == 
+    "historical"
+def 
+test_future_version():
+    v = 
+    version(date(2027, 
+    1, 
+    1), 
+    None) 
+    assert 
+    not 
+    is_effective_on(v, 
+    date(2026, 
+    8, 
+    12)) 
+    assert 
+    classify_version(v, 
+    date(2026, 
+    8, 
+    12)) 
+    == 
+    "future"
+def 
+test_open_ended_current_version():
+    v = 
+    version(date(2026, 
+    1, 
+    1), 
+    None) 
+    assert 
+    is_effective_on(v, 
+    date(2026, 
+    8, 
+    12)) 
+    assert 
+    classify_version(v, 
+    date(2026, 
+    8, 
+    12)) 
+    == 
+    "effective"
+EOF 
+pytest -q 
+tests/test_temporal.py 
+pytest -q 
+tests/test_temporal.py 
+excd 
+/workspaces/Legal-ai-2026/apps/api 
+source 
+.venv/bin/activate 
+cat > 
+app/services/temporal.py 
+<<'EOF' 
+from 
+datetime 
+import 
+date from 
+app.models.legal 
+import 
+LegalVersion 
+def 
+is_effective_on(version: 
+LegalVersion, 
+target_date: 
+date) -> 
+bool:
+    """ 
+    Určuje, 
+    či je 
+    právna 
+    verzia 
+    účinná 
+    v 
+    daný 
+    dátum. 
+    valid_from 
+    je 
+    vrátane. 
+    valid_to 
+    je 
+    vrátane, 
+    ak je 
+    nastavené. 
+    """ 
+    if 
+    target_date 
+    < 
+    version.valid_from:
+        return 
+        False
+    if 
+    version.valid_to 
+    is 
+    not 
+    None 
+    and 
+    target_date 
+    > 
+    version.valid_to: 
+        return 
+        False
+    return 
+    True
+def 
+classify_version(version: 
+LegalVersion, 
+target_date: 
+date) -> 
+str:
+    if 
+    target_date 
+    < 
+    version.valid_from:
+        return 
+        "future"
+    if 
+    version.valid_to 
+    is 
+    not 
+    None 
+    and 
+    target_date 
+    > 
+    version.valid_to: 
+        return 
+        "historical"
+    return 
+    "effective"
+EOF mkdir 
+-p tests 
+cat > 
+tests/test_temporal.py 
+<<'EOF' 
+from 
+datetime 
+import 
+date from 
+types 
+import 
+SimpleNamespace 
+from 
+app.services.temporal 
+import 
+classify_version, 
+is_effective_on 
+def 
+version(valid_from, 
+valid_to=None):
+    return 
+    SimpleNamespace(
+        valid_from=valid_from, 
+        valid_to=valid_to,
+    ) def 
+test_effective_version():
+    v = 
+    version(date(2026, 
+    1, 
+    1), 
+    date(2026, 
+    12, 
+    31)) 
+    assert 
+    is_effective_on(v, 
+    date(2026, 
+    6, 
+    1)) 
+    assert 
+    classify_version(v, 
+    date(2026, 
+    6, 
+    1)) 
+    == 
+    "effective"
+def 
+test_historical_version():
+    v = 
+    version(date(2025, 
+    1, 
+    1), 
+    date(2025, 
+    12, 
+    31)) 
+    assert 
+    not 
+    is_effective_on(v, 
+    date(2026, 
+    1, 
+    1)) 
+    assert 
+    classify_version(v, 
+    date(2026, 
+    1, 
+    1)) 
+    == 
+    "historical"
+def 
+test_future_version():
+    v = 
+    version(date(2027, 
+    1, 
+    1), 
+    None) 
+    assert 
+    not 
+    is_effective_on(v, 
+    date(2026, 
+    8, 
+    12)) 
+    assert 
+    classify_version(v, 
+    date(2026, 
+    8, 
+    12)) 
+    == 
+    "future"
+def 
+test_open_ended_current_version():
+    v = 
+    version(date(2026, 
+    1, 
+    1), 
+    None) 
+    assert 
+    is_effective_on(v, 
+    date(2026, 
+    8, 
+    12)) 
+    assert 
+    classify_version(v, 
+    date(2026, 
+    8, 
+    12)) 
+    == 
+    "effective"
+EOF cat > 
+tests/test_temporal.py 
+<<'EOF' 
+from 
+datetime 
+import 
+date from 
+types 
+import 
+SimpleNamespace 
+from 
+app.services.temporal 
+import 
+classify_version, 
+is_effective_on 
+def 
+version(valid_from, 
+valid_to=None):
+    return 
+    SimpleNamespace(
+        valid_from=valid_from, 
+        valid_to=valid_to,
+    ) def 
+test_effective_version():
+    v = 
+    version(date(2026, 
+    1, 
+    1), 
+    date(2026, 
+    12, 
+    31)) 
+    assert 
+    is_effective_on(v, 
+    date(2026, 
+    6, 
+    1)) 
+    assert 
+    classify_version(v, 
+    date(2026, 
+    6, 
+    1)) 
+    == 
+    "effective"
+def 
+test_historical_version():
+    v = 
+    version(date(2025, 
+    1, 
+    1), 
+    date(2025, 
+    12, 
+    31)) 
+    assert 
+    not 
+    is_effective_on(v, 
+    date(2026, 
+    1, 
+    1)) 
+    assert 
+    classify_version(v, 
+    date(2026, 
+    1, 
+    1)) 
+    == 
+    "historical"
+def 
+test_future_version():
+    v = 
+    version(date(2027, 
+    1, 
+    1), 
+    None) 
+    assert 
+    not 
+    is_effective_on(v, 
+    date(2026, 
+    8, 
+    12)) 
+    assert 
+    classify_version(v, 
+    date(2026, 
+    8, 
+    12)) 
+    == 
+    "future"
+def 
+test_open_ended_current_version():
+    v = 
+    version(date(2026, 
+    1, 
+    1), 
+    None) 
+    assert 
+    is_effective_on(v, 
+    date(2026, 
+    8, 
+    12)) 
+    assert 
+    classify_version(v, 
+cd /workspaces/Legal-ai-2026/apps/api
+source .venv/bin/activate
+pytest -q tests/test_temporal.py
+pytest -q tests/test_temporal.py -vv
+python -m pytest -q tests/test_temporal.py
+    date(2026, 
+    8, 
+    12)) 
+    == 
+    "effective"
+EOF
+pytest -q tests/test_temporal.py
+4 passed
+pytest -q tests/test_temporal.py
+

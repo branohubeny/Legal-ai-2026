@@ -1,0 +1,127 @@
+from typing import Iterable
+
+
+def keyword_search(
+    documents: Iterable[object],
+    query: str,
+) -> list[object]:
+    query = query.strip().lower()
+
+    if not query:
+        return []
+
+    return [
+        document
+        for document in documents
+        if query in str(getattr(document, "content", "")).lower()
+    ]
+
+
+def cosine_similarity(a: list[float], b: list[float]) -> float:
+    if len(a) != len(b):
+        raise ValueError("Vectors must have the same dimension")
+
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = sum(x * x for x in a) ** 0.5
+    norm_b = sum(y * y for y in b) ** 0.5
+
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+
+    return dot / (norm_a * norm_b)
+
+
+def vector_search(
+    documents: Iterable[object],
+    query_vector: list[float],
+    limit: int = 10,
+) -> list[object]:
+    scored = []
+
+    for document in documents:
+        vector = getattr(document, "embedding", None)
+
+        if vector is None:
+            continue
+
+        score = cosine_similarity(query_vector, vector)
+        scored.append((score, document))
+
+    scored.sort(key=lambda item: item[0], reverse=True)
+
+    return [document for _, document in scored[:limit]]
+
+
+def metadata_filter(
+    documents: Iterable[object],
+    filters: dict[str, object],
+) -> list[object]:
+    if not filters:
+        return list(documents)
+
+    result = []
+
+    for document in documents:
+        matches = all(
+            getattr(document, key, None) == value
+            for key, value in filters.items()
+        )
+
+        if matches:
+            result.append(document)
+
+    return result
+
+
+def temporal_keyword_search(
+    documents: Iterable[object],
+    query: str,
+    on_date,
+) -> list[object]:
+    from .temporal_filter import filter_effective_versions
+
+    effective = filter_effective_versions(documents, on_date)
+    return keyword_search(effective, query)
+
+
+def rerank(
+    documents: Iterable[object],
+    query: str,
+    limit: int = 10,
+) -> list[object]:
+    query_terms = set(query.lower().split())
+
+    scored = []
+
+    for document in documents:
+        content = str(getattr(document, "content", "")).lower()
+        terms = set(content.split())
+
+        score = len(query_terms & terms)
+        scored.append((score, document))
+
+    scored.sort(key=lambda item: item[0], reverse=True)
+
+    return [document for _, document in scored[:limit]]
+
+
+def hybrid_search(
+    documents: Iterable[object],
+    query: str,
+    query_vector: list[float],
+    limit: int = 10,
+) -> list[object]:
+    keyword_results = keyword_search(documents, query)
+    vector_results = vector_search(documents, query_vector, limit)
+
+    combined = []
+    seen = set()
+
+    for document in keyword_results + vector_results:
+        identifier = id(document)
+
+        if identifier not in seen:
+            seen.add(identifier)
+            combined.append(document)
+
+    return rerank(combined, query, limit)
