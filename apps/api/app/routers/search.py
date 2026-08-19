@@ -7,7 +7,6 @@ from sqlalchemy import select
 from app.db import AsyncSessionLocal
 from app.models.legal import LegalSection
 from app.services.embeddings import EmbeddingQuotaError, create_embedding
-from app.services.embeddings import EmbeddingQuotaError, create_embedding
 from app.services.search import vector_search_db
 
 router = APIRouter(
