@@ -22,54 +22,48 @@ type SearchResponse = {
   results: SearchResult[];
 };
 
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 export default function AgentPage() {
   const [question, setQuestion] = useState("");
-  const [response, setResponse] = useState<SearchResponse | null>(null);
+  const [data, setData] = useState<SearchResponse | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const query = question.trim();
-
-    if (!query) return;
+    if (!question.trim()) return;
 
     setLoading(true);
     setError("");
-    setResponse(null);
+    setData(null);
 
     try {
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
-      const result = await fetch(`${apiUrl}/api/v1/search`, {
+      const response = await fetch(`${API_URL}/api/v1/search`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          query,
+          query: question.trim(),
           limit: 10,
         }),
       });
 
-      if (!result.ok) {
-        const data = await result.json().catch(() => null);
+      const result = await response.json();
 
-        throw new Error(
-          data?.detail ?? `API chyba: ${result.status}`
-        );
+      if (!response.ok) {
+        throw new Error(result.detail || "Vyhľadávanie zlyhalo.");
       }
 
-      const data: SearchResponse = await result.json();
-
-      setResponse(data);
+      setData(result);
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : "Nepodarilo sa spojiť s LEGAL AI backendom."
+          : "Nepodarilo sa spojiť s backendom."
       );
     } finally {
       setLoading(false);
@@ -88,46 +82,39 @@ export default function AgentPage() {
             href="/"
             className="text-sm text-slate-400 transition hover:text-white"
           >
-            ← Späť na úvod
+            ← Späť
           </Link>
         </div>
       </header>
 
-      <section className="mx-auto max-w-4xl px-6 py-16">
-        <div className="mb-10">
-          <p className="text-sm font-medium text-slate-500">
-            AI LEGAL AGENT
-          </p>
+      <section className="mx-auto max-w-5xl px-6 py-12">
+        <p className="text-sm font-medium text-slate-500">
+          AI LEGAL AGENT
+        </p>
 
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
-            Opýtajte sa na právo.
-          </h1>
+        <h1 className="mt-3 text-4xl font-semibold tracking-tight">
+          Právne vyhľadávanie
+        </h1>
 
-          <p className="mt-4 max-w-2xl leading-7 text-slate-400">
-            Položte právnu otázku. LEGAL AI vyhľadá relevantné právne
-            ustanovenia v databáze.
-          </p>
-        </div>
+        <p className="mt-4 max-w-2xl text-slate-400">
+          Vyhľadajte relevantné časti právnych predpisov.
+        </p>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="mt-10">
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
             <textarea
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
               placeholder="Napríklad: Aká je výpovedná lehota pri pracovnom pomere?"
-              rows={6}
-              className="w-full resize-none bg-transparent p-4 text-base text-white outline-none placeholder:text-slate-600"
+              rows={5}
+              className="w-full resize-none bg-transparent p-4 outline-none placeholder:text-slate-600"
             />
 
-            <div className="flex items-center justify-between border-t border-white/10 pt-3">
-              <span className="px-3 text-xs text-slate-600">
-                LEGAL AI 2026
-              </span>
-
+            <div className="flex justify-end border-t border-white/10 pt-3">
               <button
                 type="submit"
                 disabled={loading || !question.trim()}
-                className="rounded-lg bg-white px-5 py-3 text-sm font-medium text-slate-950 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-lg bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {loading ? "Vyhľadávam..." : "Analyzovať"}
               </button>
@@ -136,99 +123,67 @@ export default function AgentPage() {
         </form>
 
         {error && (
-          <div className="mt-8 rounded-2xl border border-red-400/20 bg-red-400/10 p-5">
-            <p className="text-sm font-medium text-red-300">
-              Chyba spojenia
-            </p>
-            <p className="mt-2 text-sm leading-6 text-red-200/80">
-              {error}
-            </p>
+          <div className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 p-5 text-red-300">
+            {error}
           </div>
         )}
 
-        {response && (
-          <div className="mt-8">
+        {data && (
+          <section className="mt-10">
             <div className="mb-5 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">LEGAL AI</p>
-                <p className="text-xs text-slate-500">
-                  Výsledky právneho vyhľadávania
-                </p>
-              </div>
+              <h2 className="text-xl font-semibold">
+                Výsledky
+              </h2>
 
-              <span className="text-xs text-slate-500">
-                {response.results.length} výsledkov
+              <span className="text-sm text-slate-500">
+                {data.results.length} výsledkov
               </span>
             </div>
 
-            {response.results.length === 0 ? (
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-                <p className="text-slate-300">
-                  Nenašli sa žiadne relevantné právne ustanovenia.
-                </p>
+            {data.results.length === 0 ? (
+              <div className="rounded-xl border border-white/10 p-6 text-slate-400">
+                Nenašli sa žiadne relevantné právne ustanovenia.
               </div>
             ) : (
               <div className="space-y-4">
-                {response.results.map((result) => (
+                {data.results.map((result) => (
                   <article
                     key={result.id}
                     className="rounded-2xl border border-white/10 bg-white/[0.03] p-6"
                   >
-                    <div className="mb-3">
-                      <p className="text-sm font-medium text-white">
-                        {result.section_number
-                          ? `§ ${result.section_number}`
-                          : "Právne ustanovenie"}
-                        {result.subsection
-                          ? ` ods. ${result.subsection}`
-                          : ""}
-                        {result.letter ? ` písm. ${result.letter}` : ""}
-                      </p>
-
-                      {result.title && (
-                        <p className="mt-1 text-xs text-slate-500">
-                          {result.title}
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-white">
+                          § {result.section_number || "—"}
+                          {result.subsection
+                            ? ` ods. ${result.subsection}`
+                            : ""}
+                          {result.letter
+                            ? ` písm. ${result.letter}`
+                            : ""}
                         </p>
-                      )}
+
+                        {result.title && (
+                          <h3 className="mt-2 font-medium text-slate-300">
+                            {result.title}
+                          </h3>
+                        )}
+                      </div>
+
+                      <span className="text-xs text-slate-600">
+                        {result.vector_distance.toFixed(4)}
+                      </span>
                     </div>
 
-                    <p className="whitespace-pre-wrap text-sm leading-7 text-slate-300">
+                    <p className="mt-4 whitespace-pre-wrap leading-7 text-slate-400">
                       {result.text}
                     </p>
-
-                    <div className="mt-4 border-t border-white/10 pt-3 text-xs text-slate-600">
-                      Vector distance:{" "}
-                      {result.vector_distance.toFixed(4)}
-                    </div>
                   </article>
                 ))}
               </div>
             )}
-          </div>
+          </section>
         )}
-
-        <div className="mt-12 grid gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-white/10 p-5">
-            <p className="text-sm font-medium">§ Aktuálne právo</p>
-            <p className="mt-2 text-xs leading-5 text-slate-500">
-              Platné znenie právnych predpisov.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-white/10 p-5">
-            <p className="text-sm font-medium">↶ História</p>
-            <p className="mt-2 text-xs leading-5 text-slate-500">
-              Historické znenia a časová platnosť.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-white/10 p-5">
-            <p className="text-sm font-medium">⌕ Search</p>
-            <p className="mt-2 text-xs leading-5 text-slate-500">
-              Vyhľadávanie v právnej databáze.
-            </p>
-          </div>
-        </div>
       </section>
     </main>
   );
