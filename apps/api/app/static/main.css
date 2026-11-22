@@ -1,0 +1,19 @@
+/* Simple Material-like mobile-first tweaks */
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+.content {
+  padding-top: 1rem;
+  padding-bottom: 4rem;
+}
+#resultsList .card {
+  margin-bottom: 0.5rem;
+}
+.collection-item a.title {
+  font-weight: 600;
+}
+@media (min-width: 601px) {
+  .container { max-width: 720px; }
+}
